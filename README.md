@@ -1,0 +1,1 @@
+Analog Shift Register script for the Norns sound computer. It features it's own a 3 voice sine wave synth engine. 
