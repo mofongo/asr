@@ -1,15 +1,14 @@
 -- asr_test.lua
 
 -- Assuming 'analog_shift_register.lua' is in the same directory
-local ASR = require('analog_shift_register')
-
+local ASR = include("analog_shift_register")
 -- Create a new analog shift register with 5 stages
 local my_asr = ASR.new(5)
 
 print("Initial state:")
 my_asr:print_stages()
 
--- Let's simulate a sequence of incoming "analog" values and shift the register
+-- Simulate a sequence of incoming "analog" values and shift the register
 
 print("\n--- Shifting in new values ---")
 
