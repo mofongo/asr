@@ -1,26 +1,8 @@
--- a_shifting_lfo.lua
---
--- Requires the asr.lua module in the /lib folder.
-
 engine.name = "PolySine"
 MusicUtil = require("musicutil")
-
--- specs: Let's try to duplicate 1v/octave logic and ranges. 
--- The lfo should have a range of five octaves, from 0 to five. 0 should equal the base frequency of the oscillators.
--- There can be up to 3 oscillators
--- the speed of the lfo should NOT be a subdivision or multiplier of the clock.
--- The base frequency of each oscillator should be a script parameter. The range should be 110 to 550
--- The musical scale should be a selectable parameter. Does the musicutil library help with this?
--- scales should be able to have 5 to 20 notes per octave. 
--- the tranlsation from LFO float values to pitch should happen before the value is passed to the analog shift register. 
-
-
--- Import required libraries
 local lfos = require 'lfo'
--- local ASR = require 'lib/asr'
 local ASR = include("lib/analog_shift_register")
 
--- 1. Create an Analog Shift Register with 6 stages
 local my_asr = ASR.new(3)
   myclock = {}
   my_lfo = {}
@@ -32,9 +14,7 @@ local my_asr = ASR.new(3)
   encoder3_value = 0
 
 function init()
-  -- 2. Create a new LFO instance
-  -- This LFO will be a sine wave, running at 0.2 Hz,
-  -- with a bipolar amplitude of 5V, which is typical for CV in norns.
+-- Configure the LFOS
   my_lfo = lfos:add{
     shape = 'sine',
     min = 0, -- Minimum voltage
@@ -62,13 +42,13 @@ function init()
   myclock.event = track_and_shift
   --my_asr:print_stages()
   
-  -- 4. Start the LFO and the metro clock
+  -- 4. Start the LFO, mod LFO and the metro clock
   my_lfo:start()
   mod_lfo:start()
   myclock:start()
   
+-- Parameters Control Specs
 
--- 5. setup control spec for encoders
   level_control_mod_lfo_depth = controlspec.def{
     min=0, -- 'min' is the minimum value this control can reach
     max=1, -- 'max' is the maximum value this control can reach
@@ -103,19 +83,20 @@ function init()
  --   units='%' -- 'units' is a string to display at the end of the control
   }
 
-   -- we'll use our defined level_control spec to create three unique parameters:
+  -- add parameters
   params:add_control('mod_lfo_depth','mod lfo depth',level_control_mod_lfo_depth)
   params:add_control('level_2','level 2',level_control_period)
   params:add_control('level_3','level 3',level_control_depth)
 
 
---------------PITCH and MUSICUTIL--------------------
--- musicutil.generate_scale (root_num, scale_type[, octaves])
-my_scale = MusicUtil.generate_scale(1, 'Six Tone Symmetrical', 5) -- generate a C major scale with 5 octaves
+--------------Octave Control and MusicUtil--------------------
 octave1 = 1
 octave2 = 2
 octave3 = 1
 
+-- musicutil.generate_scale (root_num, scale_type[, octaves])
+my_scale = MusicUtil.generate_scale(1, 'Six Tone Symmetrical', 5)
+-- TODO: make the scale a parameter
 scales = {
     "Major",
     "Natural Minor",
@@ -160,7 +141,6 @@ scales = {
     "Chromatic"
 }
 
-
   -- common redraw metronome utility:
   screen_dirty = false
   redraw_screen = clock.run(
@@ -196,41 +176,23 @@ end
 
 
 function key(n,z)
-
   -- short way:
   if n == 1 then
-    key1_down = z == 1 and true or false -- fine-tune when holding KEY 1
+    key1_down = z == 1 and true or false 
   end
-
-  -- long way:
-  -- if n == 1 and z == 1 then
-  --   key1_down = true
-  -- elseif n == 1 and z == 0 then
-  --   key1_down = false
-  -- end
-
  end
 
 function enc(n,d)
-
-  -- short way:
-  -- params:delta('level_'..n,key1_down and d/10 or d)
-  -- print("enc "..n.." delta: "..d.." key1_down: "..tostring(key1_down))
-
-  -- long way:
   if n == 1 then
     if key1_down then
-      params:delta('mod_lfo_depth',d/10)
-      mod_lfo:set('depth', params:get('mod_lfo_depth'))
+-- TODO add other parameter to control 
     else
       params:delta('mod_lfo_depth',d)
       mod_lfo:set('depth', params:get('mod_lfo_depth'))
     end
   elseif n == 2 then
     if key1_down then
-      params:delta('level_2',d/10)
-   --   print(params:get('level_2')) -- print the current value of level_2  
-      my_lfo:set('period', params:get('level_2')) -- set the LFO depth to the value of level_2
+-- TODO add other parameter to control  
     else
       params:delta('level_2',d)
     --  print(params:get('level_2')) -- print the current value of level_2
@@ -238,9 +200,7 @@ function enc(n,d)
     end
   elseif n == 3 then
     if key1_down then
-      params:delta('level_3',d/10)
-    --  print("depth" .. params:get('level_3')) -- print the current value of level_3
-      my_lfo:set('depth', params:get('level_3')) -- set the LFO depth to the value of level_3
+ -- TODO add other parameter to control  
     else
       params:delta('level_3',d)
    --   print("depth" .. params:get('level_3')) -- print the current value of level_3
